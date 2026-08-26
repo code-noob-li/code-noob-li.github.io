@@ -1,9 +1,6 @@
 # Hexo 源码工程（本地管理，不入库）
 site/
 
-# 会话交接文档（仅本地，不入库）
-README.md
-
 # 系统文件
 Thumbs.db
 .DS_Store
