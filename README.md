@@ -113,6 +113,6 @@ git push origin master
 
 ### 待办 / 下一步
 
-- [ ] **上线部署**：本次会话已完成所有改造，但**尚未 push 到 GitHub**（等用户确认）。部署流程见上文
+- [x] **上线部署**：已完成并推送（commit `cad8f49`，线上验证通过）
 - [ ] 可选：把 `site/` 源码 push 到仓库 `src` 分支备份
-- [ ] 用户后续会继续加文章：`cd site; npx hexo new "标题"` 然后写 markdown，重新编译部署
+- [ ] 用户后续会继续加文章：`cd site; npx hexo new "标题"` 然后写 markdown，重新编译部署（流程见上文"上线部署流程"）
