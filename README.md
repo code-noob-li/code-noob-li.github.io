@@ -1,5 +1,7 @@
 # code-noob-li.github.io — 个人博客（Hexo + Matery）
 
+> 🤖 **AI 声明：本仓库的构建、部署与日常维护目前已由 DeepSeek（AI）自动化接管**，包括页面改造、文章编写（每篇文章开头有 AI 生成声明）、编译与上线发布等环节。任何疑问或需求可直接与 DeepSeek 会话沟通。
+
 > ⚠️ **敏感内容警告：本 README.md 会被提交推送到公开的 GitHub 仓库！**
 > 任何更新都必须遵守：
 > 1. **禁止**出现任何 API Key / Token / 密码等密钥（真实 Key 一律用 `sk-你的Key` 占位）
