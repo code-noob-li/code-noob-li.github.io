@@ -1,1 +1,42 @@
 /* Here is your custom css styles. */
+
+/* ===== Homepage intro section (home-about) ===== */
+.home-avatar {
+    max-width: 140px;
+}
+
+.home-intro p {
+    margin: 0.35rem 0;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    text-align: left;
+}
+
+.home-tools img {
+    margin: 0.4rem 0.5rem;
+    vertical-align: middle;
+}
+
+.home-social .social-icon {
+    font-size: 3rem;
+    margin: 0.5rem 1.2rem;
+    color: #6772e5;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.home-social .social-icon:hover {
+    color: #fa755a;
+    transform: scale(1.15);
+}
+
+/* 首页介绍卡片：覆盖 about 页的 .profile 重叠样式 */
+#home-about .profile .avatar-img {
+    transform: none;
+    max-width: 140px;
+}
+
+#home-about .profile .author {
+    margin-top: 0;
+}
+
+

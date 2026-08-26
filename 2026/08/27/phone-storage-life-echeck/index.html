@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="hello-world, Hello world, blog, code, noob">
+    <meta name="keywords" content="手机闪存也有寿命：eMMC / UFS 健康检测实战, Hello world, blog, code, noob">
     <meta name="description" content="J 的个人小站，记录学习、编程与生活的点点滴滴。">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>hello-world | Hello world</title>
+    <title>手机闪存也有寿命：eMMC / UFS 健康检测实战 | Hello world</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -225,12 +225,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/1.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/19.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">hello-world</h1>
+                    <h1 class="description center-align post-title">手机闪存也有寿命：eMMC / UFS 健康检测实战</h1>
                 </div>
             </div>
         </div>
@@ -344,12 +344,41 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Android/">
+                                <span class="chip bg-color">Android</span>
+                            </a>
+                        
+                            <a href="/tags/eMMC/">
+                                <span class="chip bg-color">eMMC</span>
+                            </a>
+                        
+                            <a href="/tags/UFS/">
+                                <span class="chip bg-color">UFS</span>
+                            </a>
+                        
+                            <a href="/tags/%E9%97%AA%E5%AD%98/">
+                                <span class="chip bg-color">闪存</span>
+                            </a>
+                        
+                            <a href="/tags/%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/">
+                                <span class="chip bg-color">折腾记录</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/" class="post-category">
+                                折腾记录
+                            </a>
+                        
+                    </div>
                     
                 </div>
             </div>
@@ -358,7 +387,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2022-10-25
+                    2026-08-27
                 </div>
                 
 
@@ -382,8 +411,130 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>hello world</p>
-<p>this is my first page</p>
+                <blockquote>
+<p>📝 本文由 <strong>DeepSeek（AI）</strong> 根据博主本人的项目&#x2F;设备检测记录整理总结，部分表述可能与实际略有出入，仅供学习参考。</p>
+</blockquote>
+<p>手机里的存储芯片（eMMC &#x2F; UFS）和 SSD 一样，闪存颗粒是有**擦写寿命（P&#x2F;E 循环）**的。用了几年之后，寿命可能悄悄耗尽——但系统平时根本看不出来，直到某天突然开始掉盘、文件损坏、变只读。</p>
+<p>这篇记录一下怎么给手机做”存储寿命体检”，包括 eMMC 和 UFS 两种方案的寄存器读取方法。</p>
+<h2 id="先分清-eMMC-和-UFS"><a href="#先分清-eMMC-和-UFS" class="headerlink" title="先分清 eMMC 和 UFS"></a>先分清 eMMC 和 UFS</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>eMMC</th>
+<th>UFS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>常见于</td>
+<td>老机型、入门机</td>
+<td>近几年的中高端机</td>
+</tr>
+<tr>
+<td>接口速度</td>
+<td>相对慢（如 HS400 ~400MB&#x2F;s）</td>
+<td>快很多</td>
+</tr>
+<tr>
+<td>寿命寄存器</td>
+<td>ext_csd</td>
+<td>UFS Health Descriptor</td>
+</tr>
+<tr>
+<td>读取难度</td>
+<td>需 root</td>
+<td>无 root 也能读（走 bugreport）</td>
+</tr>
+</tbody></table>
+<p>两者都有”寿命寄存器”，厂商在生产时就把消耗值写进去，我们只需把它读出来。</p>
+<h2 id="eMMC：读-ext-csd"><a href="#eMMC：读-ext-csd" class="headerlink" title="eMMC：读 ext_csd"></a>eMMC：读 ext_csd</h2><p>eMMC 的寿命信息在 <strong>ext_csd（Extended Card Specific Data）</strong> 寄存器里，需要 root 权限读取：</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">adb shell <span class="token string">"su -c 'cat /sys/kernel/debug/mmc0/mmc0:0001/ext_csd'"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>重点看三个字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>偏移</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PRE_EOL_INFO</td>
+<td>0x10B</td>
+<td>备用块消耗比例（预判寿命终点）</td>
+</tr>
+<tr>
+<td>DEVICE_LIFE_TIME_EST_TYP_A</td>
+<td>0x10C</td>
+<td>MLC&#x2F;TLC 用户区擦写寿命</td>
+</tr>
+<tr>
+<td>DEVICE_LIFE_TIME_EST_TYP_B</td>
+<td>0x10D</td>
+<td>SLC 缓存区擦写寿命</td>
+</tr>
+</tbody></table>
+<p>取值范围速查：</p>
+<ul>
+<li><code>0x00</code> 未定义；<code>0x01</code> 消耗 0%<del>10%；<code>0x02</code> 10%</del>20% …… <code>0x0A</code> 90%~100%</li>
+<li><code>0x0B</code> &#x3D; <strong>超出最大寿命</strong>，芯片按标称已”死透”，只剩控制器用备用块硬撑</li>
+</ul>
+<p>PRE_EOL_INFO 只有三个值：<code>0x00</code> 正常、<code>0x01</code> 警告（备用块消耗 80%~100%，进入寿命末期）、<code>0x02</code> 危急（备用块耗尽，新坏块直接丢数据）。</p>
+<p>用 Python 快速解析（把 <code>cat ext_csd</code> 输出的 hex 存下来）：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">hex_data <span class="token operator">=</span> <span class="token string">'...'</span>  <span class="token comment"># 从 cat ext_csd 获取的 512 字节 hex</span>
+data <span class="token operator">=</span> <span class="token builtin">bytes</span><span class="token punctuation">.</span>fromhex<span class="token punctuation">(</span>hex_data<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"PRE_EOL_INFO:  0x</span><span class="token interpolation"><span class="token punctuation">&#123;</span>data<span class="token punctuation">[</span><span class="token number">267</span><span class="token punctuation">]</span><span class="token punctuation">:</span><span class="token format-spec">02X</span><span class="token punctuation">&#125;</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"LIFE_TIME_A:   0x</span><span class="token interpolation"><span class="token punctuation">&#123;</span>data<span class="token punctuation">[</span><span class="token number">268</span><span class="token punctuation">]</span><span class="token punctuation">:</span><span class="token format-spec">02X</span><span class="token punctuation">&#125;</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"LIFE_TIME_B:   0x</span><span class="token interpolation"><span class="token punctuation">&#123;</span>data<span class="token punctuation">[</span><span class="token number">269</span><span class="token punctuation">]</span><span class="token punctuation">:</span><span class="token format-spec">02X</span><span class="token punctuation">&#125;</span></span><span class="token string">"</span></span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>注意：ext_csd 是整块 512 字节的 hex 字符串，偏移 0x10B 对应列表下标 267，以此类推。</p>
+</blockquote>
+<h2 id="UFS：读-Health-Descriptor"><a href="#UFS：读-Health-Descriptor" class="headerlink" title="UFS：读 Health Descriptor"></a>UFS：读 Health Descriptor</h2><p>UFS 的寿命信息叫 <strong>UFS Health Descriptor</strong>，可惜<strong>没有 root 基本没法直接从命令行读 sysfs</strong>。小米手机有个便捷办法：</p>
+<ol>
+<li>拨号盘输入 <code>*#*#284#*#*</code> 生成 bugreport</li>
+<li>解压 zip，找 <code>bugreport-*.txt</code> 主文件</li>
+<li>搜索 <code>UFS health desc</code> 区块</li>
+</ol>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token function">Select-String</span> <span class="token operator">-</span>Path <span class="token string">"bugreport-*.txt"</span> <span class="token operator">-</span>Pattern <span class="token string">"UFS health desc|bDeviceLifeTimeEst|bPreEOLInfo"</span> <span class="token operator">-</span>Context 0<span class="token punctuation">,</span>3<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>重点字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>偏移</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bPreEOLInfo</td>
+<td>0x2</td>
+<td>备用块状态：<code>0x01</code> 正常，<code>0x02</code> 警告，<code>0x03</code> 危急</td>
+</tr>
+<tr>
+<td>bDeviceLifeTimeEstA</td>
+<td>0x3</td>
+<td>SLC 区擦写寿命</td>
+</tr>
+<tr>
+<td>bDeviceLifeTimeEstB</td>
+<td>0x4</td>
+<td>MLC&#x2F;TLC 区擦写寿命</td>
+</tr>
+</tbody></table>
+<p>注意 <strong>UFS 和 eMMC 的取值含义不同</strong>：UFS 的 <code>0x01</code> 表示”几乎全新（0%~10%）”，而 eMMC 里 <code>0x01</code> 同样是正常但含义语境不同，别混着看。</p>
+<h2 id="实战案例"><a href="#实战案例" class="headerlink" title="实战案例"></a>实战案例</h2><p><strong>老机（约 7 年）</strong>：三星 eMCP 颗粒，TYP_A 和 TYP_B 都是 <code>0x0B</code>，寿命寄存器显示已超出最大寿命；PRE_EOL_INFO 为 <code>0x01</code>（备用块还剩一点）。但 dmesg 里坏块、I&#x2F;O 错误全部为 0，文件系统检查也通过——典型的”静默老化”：底层 NAND 早已过保，控制器还在用备用块掩盖错误，随时可能滑向 <code>0x02</code>。</p>
+<p><strong>新机</strong>：SK 海力士 UFS uMCP，bPreEOLInfo &#x2F; bDeviceLifeTimeEstA &#x2F; B 全为 <code>0x01</code>，接近全新。</p>
+<p>同一个”寿命”话题，两种截然不同的状态。</p>
+<h2 id="结论与建议"><a href="#结论与建议" class="headerlink" title="结论与建议"></a>结论与建议</h2><ul>
+<li>闪存寿命耗尽不等于立刻报废，但<strong>数据安全性直线下降</strong></li>
+<li>老设备如果寿命寄存器已经 <code>0x0B</code> &#x2F; <code>0x02</code>，请把重要数据及时转移、定期备份，别只存那一台</li>
+<li>新设备也别掉以轻心：经常刷机、大量写入、长期高温都会加速寿命消耗</li>
+<li>eMCP &#x2F; uMCP 是闪存与内存合封的芯片，坏了只能换主板，<strong>基本没有单换闪存的可能</strong></li>
+</ul>
+<p>建议每半年到一年给自己手机做一次”体检”，提前知道寿命状态，比出事后再救数据安心得多。</p>
 
                 
             </div>
@@ -397,7 +548,27 @@
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
+                            
+                                <a href="/tags/Android/">
+                                    <span class="chip bg-color">Android</span>
+                                </a>
+                            
+                                <a href="/tags/eMMC/">
+                                    <span class="chip bg-color">eMMC</span>
+                                </a>
+                            
+                                <a href="/tags/UFS/">
+                                    <span class="chip bg-color">UFS</span>
+                                </a>
+                            
+                                <a href="/tags/%E9%97%AA%E5%AD%98/">
+                                    <span class="chip bg-color">闪存</span>
+                                </a>
+                            
+                                <a href="/tags/%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/">
+                                    <span class="chip bg-color">折腾记录</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -439,9 +610,76 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
+            <div class="card">
+                <a href="/2026/08/27/phone-storage-life-echeck/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="手机闪存也有寿命：eMMC / UFS 健康检测实战">
+                        
+                        <span class="card-title">手机闪存也有寿命：eMMC / UFS 健康检测实战</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2026-08-27
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/" class="post-category">
+                                    折腾记录
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Android/">
+                        <span class="chip bg-color">Android</span>
+                    </a>
+                    
+                    <a href="/tags/eMMC/">
+                        <span class="chip bg-color">eMMC</span>
+                    </a>
+                    
+                    <a href="/tags/UFS/">
+                        <span class="chip bg-color">UFS</span>
+                    </a>
+                    
+                    <a href="/tags/%E9%97%AA%E5%AD%98/">
+                        <span class="chip bg-color">闪存</span>
+                    </a>
+                    
+                    <a href="/tags/%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/">
+                        <span class="chip bg-color">折腾记录</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
             <div class="card">
                 <a href="/2026/08/27/opencode-ocr-bridge/">
                     <div class="card-image">
@@ -459,9 +697,9 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2026-08-27
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2026-08-27
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -498,44 +736,6 @@
                     </a>
                     
                 </div>
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                本篇&nbsp;<i class="far fa-dot-circle"></i>
-            </div>
-            <div class="card">
-                <a href="/2022/10/25/hello-world-1/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="/medias/featureimages/1.jpg" class="responsive-img" alt="hello-world">
-                        
-                        <span class="card-title">hello-world</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-10-25
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-user fa-fw"></i>
-                            J
-                            
-                        </span>
-                    </div>
-                </div>
-
                 
             </div>
         </div>

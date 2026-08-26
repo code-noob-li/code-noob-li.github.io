@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="hello-world, Hello world, blog, code, noob">
+    <meta name="keywords" content="给 DeepSeek 加一双&#34;眼睛&#34;：用 opencode 插件实现图片识别, Hello world, blog, code, noob">
     <meta name="description" content="J 的个人小站，记录学习、编程与生活的点点滴滴。">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>hello-world | Hello world</title>
+    <title>给 DeepSeek 加一双&#34;眼睛&#34;：用 opencode 插件实现图片识别 | Hello world</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -225,12 +225,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/1.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/19.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">hello-world</h1>
+                    <h1 class="description center-align post-title">给 DeepSeek 加一双&#34;眼睛&#34;：用 opencode 插件实现图片识别</h1>
                 </div>
             </div>
         </div>
@@ -344,12 +344,41 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/opencode/">
+                                <span class="chip bg-color">opencode</span>
+                            </a>
+                        
+                            <a href="/tags/AI/">
+                                <span class="chip bg-color">AI</span>
+                            </a>
+                        
+                            <a href="/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/">
+                                <span class="chip bg-color">多模态</span>
+                            </a>
+                        
+                            <a href="/tags/OCR/">
+                                <span class="chip bg-color">OCR</span>
+                            </a>
+                        
+                            <a href="/tags/%E6%8F%92%E4%BB%B6/">
+                                <span class="chip bg-color">插件</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/AI/" class="post-category">
+                                AI
+                            </a>
+                        
+                    </div>
                     
                 </div>
             </div>
@@ -358,7 +387,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2022-10-25
+                    2026-08-27
                 </div>
                 
 
@@ -382,8 +411,93 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>hello world</p>
-<p>this is my first page</p>
+                <blockquote>
+<p>📝 本文由 <strong>DeepSeek（AI）</strong> 根据博主本人的项目记录整理总结，部分表述可能与实际略有出入，仅供学习参考。</p>
+</blockquote>
+<p>DeepSeek 很聪明，但它<strong>看不了图</strong>。想让它分析一张截图、识别照片里的文字、描述一张 UI 界面，直接丢图片过去只会得到一句”我无法查看图片”。</p>
+<p>今天分享一个低成本解法：给 opencode 写一个<strong>消息中间件插件</strong>，把图片自动转成文字描述，再交给 DeepSeek 处理。原理是”借”阿里云百炼的 <code>qwen3.5-ocr</code> 视觉模型来当眼睛。</p>
+<h2 id="思路：在主模型之前拦截图片"><a href="#思路：在主模型之前拦截图片" class="headerlink" title="思路：在主模型之前拦截图片"></a>思路：在主模型之前拦截图片</h2><p>opencode 提供了 <code>experimental.chat.messages.transform</code> 钩子，可以在这个时刻<strong>改写即将发送给主模型的消息</strong>。插件的完整流程：</p>
+<ol>
+<li>扫描用户消息里所有图片（<code>mime</code> 以 <code>image/*</code> 开头的文件 part）</li>
+<li>读取图片内容（支持 data URL、本地路径、http(s) 链接）</li>
+<li>调用百炼的 OpenAI 兼容接口，让 OCR 模型完整提取文字 + 描述物体&#x2F;场景&#x2F;布局</li>
+<li>把原图片替换成 <code>[图片内容]</code> + 识别文本的纯文本 part</li>
+<li>主模型拿到的就是纯文本，完全无感</li>
+</ol>
+<p>这样用户上传图片后<strong>什么都不用管</strong>，体验上和原生支持图片的模型一模一样。</p>
+<h2 id="两个关键设计"><a href="#两个关键设计" class="headerlink" title="两个关键设计"></a>两个关键设计</h2><p><strong>自动跳过有视觉能力的主模型。</strong> 通过 <code>experimental.chat.system.transform</code> 读取当前主模型的 <code>capabilities.input.image</code>，如果它本身就能看图（比如切到了 qwen-vl），插件直接不介入。</p>
+<p><strong>结果缓存。</strong> 按图片 part 的 id 缓存 OCR 结果，同一张图只调一次 API，不浪费额度。</p>
+<h2 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h2><p>插件文件放到 opencode 的 plugins 目录即可自动加载：</p>
+<table>
+<thead>
+<tr>
+<th>作用域</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全局（推荐）</td>
+<td><code>~/.config/opencode/plugins/qwen-ocr-bridge.ts</code></td>
+</tr>
+<tr>
+<td>项目级</td>
+<td><code>&lt;你的项目&gt;/.opencode/plugins/qwen-ocr-bridge.ts</code></td>
+</tr>
+</tbody></table>
+<h2 id="关于-API-端点，请务必注意"><a href="#关于-API-端点，请务必注意" class="headerlink" title="关于 API 端点，请务必注意"></a>关于 API 端点，请务必注意</h2><p>阿里云百炼的 OpenAI 兼容端点，<strong>每个账号都是不一样的</strong>，形如：</p>
+<pre class="line-numbers language-none"><code class="language-none">https:&#x2F;&#x2F;llm-&lt;你的专属ID&gt;.cn-beijing.maas.aliyuncs.com&#x2F;compatible-mode&#x2F;v1<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><code>&lt;你的专属ID&gt;</code> 因人而异，网上（包括很多文章）贴出来的地址<strong>不能照抄</strong>，抄了会报 403 &#x2F; not found。正确做法是登录阿里云百炼控制台，在 <strong>API-KEY 管理</strong>页面查看你自己的专属端点。</p>
+<p>更稳妥的方式是<strong>不写死在代码里</strong>，用环境变量注入：</p>
+<pre class="line-numbers language-typescript" data-language="typescript"><code class="language-typescript"><span class="token keyword">const</span> <span class="token constant">OCR_MODEL</span> <span class="token operator">=</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">QWEN_OCR_MODEL</span> <span class="token operator">??</span> <span class="token string">"qwen3.5-ocr"</span>
+<span class="token comment">// 端点是"一人一个"，通过环境变量注入，不要硬编码！</span>
+<span class="token keyword">const</span> <span class="token constant">OCR_BASE_URL</span> <span class="token operator">=</span>
+  process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">QWEN_OCR_BASE_URL</span> <span class="token operator">??</span>
+  <span class="token string">"https://llm-&lt;你的专属ID>.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"</span>
+<span class="token keyword">const</span> <span class="token constant">OCR_API_KEY</span> <span class="token operator">=</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">DASHSCOPE_API_KEY</span> <span class="token operator">??</span> <span class="token string">""</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>调用部分就是标准的 OpenAI 兼容格式：</p>
+<pre class="line-numbers language-typescript" data-language="typescript"><code class="language-typescript"><span class="token keyword">const</span> res <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">$&#123;</span><span class="token constant">OCR_BASE_URL</span><span class="token interpolation-punctuation punctuation">&#125;</span></span><span class="token string">/chat/completions</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>
+  method<span class="token operator">:</span> <span class="token string">"POST"</span><span class="token punctuation">,</span>
+  headers<span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token string-property property">"Content-Type"</span><span class="token operator">:</span> <span class="token string">"application/json"</span><span class="token punctuation">,</span>
+    Authorization<span class="token operator">:</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Bearer </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">$&#123;</span><span class="token constant">OCR_API_KEY</span><span class="token interpolation-punctuation punctuation">&#125;</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  body<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span><span class="token punctuation">&#123;</span>
+    model<span class="token operator">:</span> <span class="token constant">OCR_MODEL</span><span class="token punctuation">,</span>
+    messages<span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token punctuation">&#123;</span>
+        role<span class="token operator">:</span> <span class="token string">"user"</span><span class="token punctuation">,</span>
+        content<span class="token operator">:</span> <span class="token punctuation">[</span>
+          <span class="token punctuation">&#123;</span> type<span class="token operator">:</span> <span class="token string">"image_url"</span><span class="token punctuation">,</span> image_url<span class="token operator">:</span> <span class="token punctuation">&#123;</span> url<span class="token operator">:</span> dataUrl <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+          <span class="token punctuation">&#123;</span> type<span class="token operator">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> text<span class="token operator">:</span> <span class="token string">"请完整识别并描述这张图片……"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+        <span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="安全提醒：Key-只进环境变量"><a href="#安全提醒：Key-只进环境变量" class="headerlink" title="安全提醒：Key 只进环境变量"></a>安全提醒：Key 只进环境变量</h2><p>写这类插件时最容易踩的坑就是<strong>把 API Key 硬编码进文件</strong>，然后随手推到 GitHub 上。请务必做到：</p>
+<ul>
+<li>Key 一律从环境变量读取，例如 <code>process.env.DASHSCOPE_API_KEY</code></li>
+<li>插件文件里<strong>永远不要出现</strong> <code>sk-</code> 开头的真实 Key，也不要出现自己的专属端点地址</li>
+<li>仓库里做好 <code>.gitignore</code>，把含 Key 的本地配置排除在外</li>
+<li>发现 Key 疑似泄露，立刻去百炼控制台<strong>重置</strong>，旧的立即作废</li>
+</ul>
+<p>设置环境变量：</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token comment"># Windows</span>
+setx DASHSCOPE_API_KEY <span class="token string">"sk-你的Key"</span>
+setx QWEN_OCR_BASE_URL <span class="token string">"https://llm-你的专属ID.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"</span>
+
+<span class="token comment"># macOS / Linux</span>
+<span class="token function">echo</span> <span class="token string">'export DASHSCOPE_API_KEY="sk-你的Key"'</span> >> ~<span class="token operator">/</span><span class="token punctuation">.</span>zshrc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>重启 opencode，在对话里直接拖入或粘贴图片发送即可，识别结果自动以文字形式交给主模型。整个过程全自动。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
+<li>主模型不支持图片 ≠ 不能用图片，中间件 + 云端 OCR 是通用解法</li>
+<li>视觉模型选免费的 <code>qwen3.5-ocr</code> 足够应付截图、文档、UI、照片等场景</li>
+<li>专属 API 端点和 Key 都是敏感信息，务必环境变量化 + 不入库</li>
+</ul>
 
                 
             </div>
@@ -397,7 +511,27 @@
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
+                            
+                                <a href="/tags/opencode/">
+                                    <span class="chip bg-color">opencode</span>
+                                </a>
+                            
+                                <a href="/tags/AI/">
+                                    <span class="chip bg-color">AI</span>
+                                </a>
+                            
+                                <a href="/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/">
+                                    <span class="chip bg-color">多模态</span>
+                                </a>
+                            
+                                <a href="/tags/OCR/">
+                                    <span class="chip bg-color">OCR</span>
+                                </a>
+                            
+                                <a href="/tags/%E6%8F%92%E4%BB%B6/">
+                                    <span class="chip bg-color">插件</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -443,13 +577,13 @@
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2026/08/27/opencode-ocr-bridge/">
+                <a href="/2026/08/27/phone-storage-life-echeck/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="给 DeepSeek 加一双&#34;眼睛&#34;：用 opencode 插件实现图片识别">
+                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="手机闪存也有寿命：eMMC / UFS 健康检测实战">
                         
-                        <span class="card-title">给 DeepSeek 加一双&#34;眼睛&#34;：用 opencode 插件实现图片识别</span>
+                        <span class="card-title">手机闪存也有寿命：eMMC / UFS 健康检测实战</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -466,8 +600,8 @@
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/AI/" class="post-category">
-                                    AI
+                            <a href="/categories/%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/" class="post-category">
+                                    折腾记录
                                 </a>
                             
                             
@@ -477,24 +611,24 @@
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/opencode/">
-                        <span class="chip bg-color">opencode</span>
+                    <a href="/tags/Android/">
+                        <span class="chip bg-color">Android</span>
                     </a>
                     
-                    <a href="/tags/AI/">
-                        <span class="chip bg-color">AI</span>
+                    <a href="/tags/eMMC/">
+                        <span class="chip bg-color">eMMC</span>
                     </a>
                     
-                    <a href="/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/">
-                        <span class="chip bg-color">多模态</span>
+                    <a href="/tags/UFS/">
+                        <span class="chip bg-color">UFS</span>
                     </a>
                     
-                    <a href="/tags/OCR/">
-                        <span class="chip bg-color">OCR</span>
+                    <a href="/tags/%E9%97%AA%E5%AD%98/">
+                        <span class="chip bg-color">闪存</span>
                     </a>
                     
-                    <a href="/tags/%E6%8F%92%E4%BB%B6/">
-                        <span class="chip bg-color">插件</span>
+                    <a href="/tags/%E6%8A%98%E8%85%BE%E8%AE%B0%E5%BD%95/">
+                        <span class="chip bg-color">折腾记录</span>
                     </a>
                     
                 </div>
@@ -505,7 +639,7 @@
         
         <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge right-badge text-color">
-                本篇&nbsp;<i class="far fa-dot-circle"></i>
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
                 <a href="/2022/10/25/hello-world-1/">
@@ -535,7 +669,6 @@
                         </span>
                     </div>
                 </div>
-
                 
             </div>
         </div>

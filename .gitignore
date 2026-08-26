@@ -1,0 +1,7 @@
+# Hexo 源码工程（本地管理，不入库）
+site/
+
+# 系统文件
+Thumbs.db
+.DS_Store
+desktop.ini
