@@ -125,3 +125,47 @@ git push origin master
 - [x] **上线部署**：已完成并推送（commit `cad8f49`，线上验证通过）
 - [ ] 可选：把 `site/` 源码 push 到仓库 `src` 分支备份
 - [ ] 用户后续会继续加文章：`cd site; npx hexo new "标题"` 然后写 markdown，重新编译部署（流程见上文"上线部署流程"）
+
+## 2026-09-16 本次维护会话记录
+
+### 背景
+
+把本地素材 `素材/程序员电子名片.htm`（VS Code 风格的整页电子名片）适配进首页，并补上缺失的深/浅色切换。
+
+### 本次改造
+
+- **首页电子名片**（`themes/matery/layout/_partial/home-about.ejs`）：在原个人介绍**上方**新增深色 IDE 卡片
+  - 自写 canvas 粒子背景（无外部依赖，未用 CDN）、打字机效果、技能标签、GitHub 联系入口
+  - **邮箱项已删除**（隐私）；头像换成新图（覆盖 `themes/matery/source/medias/avatar.jpg`）
+  - 文案调整：role「全栈开发工程师(自封的)」、`9年Linux使用时长`
+  - 代码行加了**逐行向下扫过的光波**动画（`.hc-code::after` + `nth-child` 递进延迟）
+- **首页底部**（`layout/index.ejs`）：新增 `// 代码永不眠 | 最后编译时间: …`，仅首页第 1 页显示，浅灰底
+- **深/浅色模式切换**：
+  - 导航栏新增 🌙/☀️ 按钮（`layout/_partial/navigation.ejs`）
+  - `source/js/matery.js`：切换 `body.DarkMode` 并写入 `localStorage.isDark`（原主题只读不写）
+  - `layout/_partial/head.ejs` 引入 `css/dark.css`，加载顺序改为 **matery → dark → my**
+  - `_config.yml` 增加 `libs.css.dark: /css/dark.css`
+- **样式**：新增样式全部在 `source/css/my.css`，名片用 `#home-ide` 作用域，避免污染浅色主题
+- **`.gitignore`**：新增忽略 `素材/`（含个人邮箱，禁止入库）
+
+### 踩过的坑（本次）
+
+| 坑 | 说明 | 解法 |
+| --- | --- | --- |
+| 深色模式是"半成品" | matery 的 `dark.css` 抄自别的博客：引用不存在的 `/medias_webp/*.webp`、依赖不存在的 `.Cuteen_DarkSky` 元素，且**缺 `body.DarkMode` 底色** | 在 `my.css` 补 `body.DarkMode{background-color}` 及自定义组件适配 |
+| 深色按钮是"死代码" | 主题 JS 只读 `isDark` 从不写入，布局里也没有 `#sum-moon-icon`/`.theme-btn` 元素 → 页面上根本找不到开关 | 自己加按钮 + 点击写入逻辑 |
+| 头像在深色下变暗 | `dark.css` 有 `body.DarkMode img{filter:brightness(.7)}` | `#home-ide .hc-avatar-img{filter:none}` 覆盖 |
+| 名片光波动画漏搬 | 原素材 `.highlight::after` 的扫光容易漏 | 补成逐行扫描（`hc-shine`） |
+| CSS 加载顺序 | `my.css` 若在 `dark.css` 之前，自定义覆盖会被压 | head 里改为 matery → dark → my |
+
+### 敏感信息检查（推送前已做）
+
+- `素材/`（含真实邮箱）已 gitignore，`git status` 不再出现
+- 全仓库关键词扫描：邮箱相关关键词仅命中**被忽略的素材文件**与第三方库（`libs/`），站点产物无邮箱
+- 个人 API 端点：文章与 `search.xml` 中均为 `<你的专属ID>` 占位，无真实 `llm-<ID>` 域名
+- 无 `sk-` 真实 Key、无设备序列号
+
+### 部署
+
+- 已 `npx hexo clean; npx hexo g` 并把产物同步到仓库根目录，提交推送 master
+

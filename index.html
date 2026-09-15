@@ -25,6 +25,7 @@
     <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
     <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
     <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/dark.css">
     <link rel="stylesheet" type="text/css" href="/css/my.css">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
@@ -117,6 +118,11 @@
     
   </li>
   
+  <li>
+    <a href="#!" id="theme-toggle" class="waves-effect waves-light" title="切换深色/浅色模式">
+      <i id="sum-moon-icon" class="fas fa-moon" style="zoom: 0.85;"></i>
+    </a>
+  </li>
   <li>
     <a href="#searchModal" class="modal-trigger waves-effect waves-light">
       <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
@@ -417,29 +423,102 @@
 
     
 <div id="home-about" class="container index-card">
+
+    <!-- ===== 电子名片（IDE 风格） ===== -->
+    <div class="card home-ide-card">
+        <div id="home-ide" class="card-content">
+            <canvas id="hc-particles"></canvas>
+
+            <header class="hc-header">
+                <div class="hc-controls">
+                    <span class="hc-control hc-close"></span>
+                    <span class="hc-control hc-min"></span>
+                    <span class="hc-control hc-max"></span>
+                </div>
+                <div class="hc-title"><i class="fas fa-code"></i>Joll_Snow.js - Visual Studio Code</div>
+            </header>
+
+            <div class="hc-body">
+                <section class="hc-avatar-sec">
+                    <figure class="hc-avatar-box">
+                        <img class="hc-avatar-img"
+                             src="/medias/avatar.jpg"
+                             alt="Joll Snow">
+                        <span class="hc-avatar-glow"></span>
+                    </figure>
+                    <figcaption class="hc-name-box">
+                        <h1 class="hc-name">Joll Snow</h1>
+                        <p class="hc-role">全栈开发工程师(自封的)</p>
+                    </figcaption>
+                </section>
+
+                <section class="hc-info">
+                    <div class="hc-line">
+                        <span class="hc-num">1</span>
+                        <span class="hc-code"><span class="hc-kw">const</span> <span class="hc-var">developer</span> <span class="hc-op">=</span> <span class="hc-kw">new</span> <span class="hc-fn">Developer</span><span class="hc-op">({</span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">2</span>
+                        <span class="hc-code">&nbsp;&nbsp;<span class="hc-var">name</span><span class="hc-op">:</span> <span class="hc-str">"Joll Snow"</span><span class="hc-op">,</span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">3</span>
+                        <span class="hc-code">&nbsp;&nbsp;<span class="hc-var">role</span><span class="hc-op">:</span> <span class="hc-str">"全栈开发工程师(自封的)"</span><span class="hc-op">,</span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">4</span>
+                        <span class="hc-code">&nbsp;&nbsp;<span class="hc-var">skills</span><span class="hc-op">:</span> <span class="hc-op">[</span>
+                            <span class="hc-skills">
+                                <span class="hc-skill-tag">Python</span>
+                                <span class="hc-skill-tag">C++</span>
+                                <span class="hc-skill-tag">JavaScript</span>
+                            </span>
+                        <span class="hc-op">],</span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">5</span>
+                        <span class="hc-code">&nbsp;&nbsp;<span class="hc-var">systems</span><span class="hc-op">:</span> <span class="hc-str">"9年Linux使用时长，熟悉Docker &amp; Podman"</span><span class="hc-op">,</span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">6</span>
+                        <span class="hc-code">&nbsp;&nbsp;<span class="hc-var">iotProject</span><span class="hc-op">:</span> <span class="hc-str hc-typing" id="hc-iot"></span><span class="hc-op">,</span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">7</span>
+                        <span class="hc-code">&nbsp;&nbsp;<span class="hc-var">aiPractice</span><span class="hc-op">:</span> <span class="hc-str hc-typing" id="hc-ai"></span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">8</span>
+                        <span class="hc-code"><span class="hc-op">});</span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">9</span>
+                        <span class="hc-code"><span class="hc-comment">// 联系方式</span></span>
+                    </div>
+                    <div class="hc-line">
+                        <span class="hc-num">10</span>
+                        <span class="hc-code"><span class="hc-var">contact</span><span class="hc-op">.</span><span class="hc-fn">connect</span><span class="hc-op">(</span><span class="hc-var">developer</span><span class="hc-op">);</span></span>
+                    </div>
+                </section>
+            </div>
+
+            <address class="hc-contact">
+                <a class="hc-contact-item" href="https://github.com/code-noob-li" target="_blank" rel="noopener">
+                    <i class="fab fa-github"></i><span>github.com/code-noob-li</span>
+                </a>
+            </address>
+        </div>
+    </div>
+
+    <!-- ===== 个人介绍 ===== -->
     <div class="card">
         <div class="card-content">
-            <div class="row">
-                <div class="col s12 m4 l3">
-                    <div class="profile center-align">
-                        <div class="avatar">
-                            <img src="/medias/avatar.jpg" alt="J" class="circle responsive-img home-avatar">
-                        </div>
-                        <div class="author">
-                            <div class="title">J</div>
-                            <div class="career">computer amateur</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col s12 m8 l9">
-                    <div class="home-intro" data-aos="fade-up">
-                        <p>👋 Hi, I'm <b>@code-noob-li</b></p>
-                        <p>👀 I'm interested in eat, sleep, code...</p>
-                        <p>🌱 I'm currently learning how to use computer!</p>
-                        <p>💞️ I'm looking to collaborate on ...earth...</p>
-                        <p>📫 How to reach me ...in dream...</p>
-                    </div>
-                </div>
+            <div class="home-intro" data-aos="fade-up">
+                <p>👋 Hi, I'm <b>@code-noob-li</b></p>
+                <p>👀 I'm interested in eat, sleep, code...</p>
+                <p>🌱 I'm currently learning how to use computer!</p>
+                <p>💞️ I'm looking to collaborate on ...earth...</p>
+                <p>📫 How to reach me ...in dream...</p>
             </div>
 
             <div class="title center-align" data-aos="zoom-in-up">
@@ -470,6 +549,93 @@
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    /* 粒子背景 */
+    var canvas = document.getElementById('hc-particles');
+    var host = document.getElementById('home-ide');
+    if (canvas && host) {
+        var ctx = canvas.getContext('2d');
+        var colors = ['#007acc', '#4ec9b0', '#dcdcaa', '#c586c0'];
+        var parts = [], W = 0, H = 0;
+
+        function resize() {
+            W = canvas.width = host.offsetWidth;
+            H = canvas.height = host.offsetHeight;
+        }
+        function build() {
+            resize();
+            var n = W < 768 ? 32 : 70;
+            parts = [];
+            for (var i = 0; i < n; i++) {
+                parts.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    vx: (Math.random() - 0.5) * 0.6,
+                    vy: (Math.random() - 0.5) * 0.6,
+                    r: Math.random() * 2 + 1,
+                    c: colors[i % colors.length]
+                });
+            }
+        }
+        function frame() {
+            ctx.clearRect(0, 0, W, H);
+            var i, j, p, a, b, dx, dy, d2;
+            ctx.globalAlpha = 0.55;
+            for (i = 0; i < parts.length; i++) {
+                p = parts[i];
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > W) p.vx *= -1;
+                if (p.y < 0 || p.y > H) p.vy *= -1;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, 6.2832);
+                ctx.fillStyle = p.c;
+                ctx.fill();
+            }
+            ctx.globalAlpha = 0.15;
+            ctx.strokeStyle = '#007acc';
+            ctx.lineWidth = 1;
+            for (i = 0; i < parts.length; i++) {
+                for (j = i + 1; j < parts.length; j++) {
+                    a = parts[i]; b = parts[j];
+                    dx = a.x - b.x; dy = a.y - b.y; d2 = dx * dx + dy * dy;
+                    if (d2 < 22500) {
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        ctx.lineTo(b.x, b.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(frame);
+        }
+        window.addEventListener('resize', build);
+        build();
+        frame();
+    }
+
+    /* 打字机效果 */
+    function typeWriter(el, text, speed) {
+        if (!el) return;
+        var i = 0;
+        el.textContent = '';
+        (function step() {
+            if (i < text.length) {
+                el.textContent += text.charAt(i++);
+                setTimeout(step, speed);
+            }
+        })();
+    }
+    typeWriter(document.getElementById('hc-iot'),
+        '基于树莓派、ESP32、ESP8266、ASR Pro的语音IoT控制系统，支持语音控制电脑开机、蓝牙连接、灯光控制', 40);
+    setTimeout(function () {
+        typeWriter(document.getElementById('hc-ai'),
+            'Linux + CUDA + llama.cpp 部署本地大语言模型(LLM)', 50);
+    }, 2000);
+})();
+</script>
 
 
 
@@ -648,6 +814,23 @@ this is my first page
             
         </div>
     </article>
+
+    
+    <div class="container home-compile-footer" data-aos="fade-up">
+        <p>// 代码永不眠 | 最后编译时间: <span id="hc-current-time"></span></p>
+    </div>
+    <script>
+    (function () {
+        var el = document.getElementById('hc-current-time');
+        if (!el) return;
+        function tick() {
+            el.textContent = new Date().toLocaleString('zh-CN', { hour12: false });
+        }
+        tick();
+        setInterval(tick, 1000);
+    })();
+    </script>
+    
 
 </main>
 
