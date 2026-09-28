@@ -467,11 +467,14 @@ make TARGET=BLUE_PILL <span class="token operator">-</span>j4      <span class="
 <p>刷机走 ST-LINK + STM32CubeProgrammer：</p>
 <pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">STM32_Programmer_CLI <span class="token operator">-</span>c port=SWD <span class="token operator">-</span>w build/u2f<span class="token punctuation">.</span>bin 0x08000000 <span class="token operator">-</span>rst<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
+<h2 id="插曲：第一次焊接，把板子焊废了一半"><a href="#插曲：第一次焊接，把板子焊废了一半" class="headerlink" title="插曲：第一次焊接，把板子焊废了一半"></a>插曲：第一次焊接，把板子焊废了一半</h2><p>上面这段”接线”其实是理想状态，真实开局没那么顺利——我第一次自己动手焊，手法太菜，芯片引脚焊成了一大片连锡；急着救场，又拿钳子暴力拔排线，结果把焊盘和走线扯坏了一堆：<strong>Type-C 座只剩一个方向的数据脚有信号，板载 LED 那根走线也被挂断过</strong>。</p>
+<p>Type-C 坏了，板子不能直接扔，有个绕过的土办法：<strong>直接把 D+&#x2F;D− 飞线到 USB</strong>。也就是绕过板载 Type-C，把 <code>PA12(D+)</code>、<code>PA11(D−)</code> 直接引到一根 USB 2.0 线或座子上——D+ 记得串 1.5kΩ 上拉到 3.3V、GND 共地，就能先跑起来，先验证固件没问题再说。</p>
+<p>后面还是老老实实把 Type-C 座重新补焊了一遍（重点补数据脚和外壳接地脚，去氧化加锡），正反两面才都恢复导通。补焊好之后才用回了 ST-LINK 刷机 + Type-C 的正常姿势，后面几个坑也大多是从这次焊接翻车一路带出来的。</p>
 <h2 id="大坑一：上电完全不枚举，元凶是-Type-C-座只有一面导通"><a href="#大坑一：上电完全不枚举，元凶是-Type-C-座只有一面导通" class="headerlink" title="大坑一：上电完全不枚举，元凶是 Type-C 座只有一面导通"></a>大坑一：上电完全不枚举，元凶是 Type-C 座只有一面导通</h2><p>刷完固件，插上 USB，设备管理器<strong>连”未知设备”都不弹</strong>，一片死寂。</p>
 <p>先用 <code>hotplug</code> 模式（不停核、不复位）读寄存器，确认固件其实<strong>已经在正常跑了</strong>：时钟、PLL、USB 时钟、<code>USBEN</code> 全部正确，但 USB 核的 <code>FNR</code> 一直是 0——<strong>从来没收到过主机的 SOF</strong>。</p>
 <p>这只有一种解释：主机侧根本没看到 D+ 的上拉。</p>
 <p>排查过程中还差点误判成”引脚短地”：固件跑过后，即使把 <code>USBEN</code> 清 0，USB PHY 仍霸占着 PA11&#x2F;PA12，把这两个脚当普通 GPIO 读会一直是 0，看着就像短路到地。<strong>必须再按住 USB 复位（<code>USBRST=1</code>）才能真正拿回引脚控制权</strong>。</p>
-<p>排除完这些，最后问题锁定在<strong>板载的 Type-C 座：它只有一个插接方向的数据脚是通的！</strong> 把 USB 反插一下就立刻枚举成功，正插没反应。重新补焊座子的数据脚后，正反两面都能用了。</p>
+<p>排除完这些，最后问题锁定在<strong>板载的 Type-C 座：它只有一个插接方向的数据脚是通的！</strong> 把 USB 反插一下就立刻枚举成功，正插没反应——这正是上一节焊接翻车扯坏走线的后遗症，重新补焊座子后才恢复正常。</p>
 <blockquote>
 <p>教训：F103 的”无反应 &#x2F; 无法识别”，优先怀疑物理层——数据线、座子正反、D+ 的 1.5k 上拉，其次才是固件。</p>
 </blockquote>
