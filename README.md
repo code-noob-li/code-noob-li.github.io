@@ -169,3 +169,40 @@ git push origin master
 
 - 已 `npx hexo clean; npx hexo g` 并把产物同步到仓库根目录，提交推送 master
 
+## 2026-09-30 本次维护会话记录
+
+### 本次改造
+
+- **深/浅色自动切换（按访问设备时间）**
+  - `themes/matery/source/js/matery.js`：新增 `getPreferredDark()`——有手动偏好（`localStorage.isDark` 为 `'1'`/`'0'`）就用手动，否则按**访问者自己的设备时间**判断：**19:00 ~ 次日 7:00 自动深色**，其余浅色。
+  - `themes/matery/layout/layout.ejs`：在 `<body>` 开头加了一段内联脚本，在首屏渲染前就套上 `body.DarkMode`，**消除「先亮后暗」的闪烁（FOUC）**。
+  - 行为：点过 🌙/☀️ 按钮 → 永久记住该偏好；从没点过 → 每次进站按时间自动决定。原夜间 toast 提醒因此基本不再触发（夜间已自动变暗）。
+- **访问统计：不蒜子 → Vercount**
+  - `themes/matery/layout/layout.ejs`：把 `<script async src=".../busuanzi.pure.mini.js">` 换成 `<script defer src="https://events.vercount.one/js">`。
+  - Vercount（<https://vercount.one>）是**不蒜子的兼容替代**：仍会写 `busuanzi_value_site_pv` / `busuanzi_value_site_uv`（以及 `vercount_value_*`），所以 `footer.ejs` 的标签**一行没动**；首次访问会自动把不蒜子的历史数据同步过来。
+  - `_config.yml` 的 `busuanziStatistics` 配置项**保留原名**（`footer.ejs` / `post-detail.ejs` 还在引用它），只是补了注释说明它现在控制 Vercount。
+  - 选它的原因：不蒜子用 Referer 识别站点，Firefox 严格隐私模式 / Safari / 移动端常丢失 Referer 导致接口 400、页面数字空白，且高峰期易 502；Vercount 改用 POST，响应更快更稳，并有 localStorage 缓存兜底。
+
+### 关于「绑了自定义域名后看不到访问统计」的排查结论
+
+- **与自定义域名无关**。实测不蒜子接口（带 `Referer: https://www.202606121.xyz/`）返回 `{"site_pv":161,"site_uv":131,"version":2.4}`，说明该域名**一直在正常计数**（当时 161 次访问 / 131 人）。
+- 不带 `Referer` 时接口返回 **HTTP 400 Bad Request**；所以浏览器一旦屏蔽/剥离 Referer（隐私设置、广告拦截插件拦 `busuanzi.ibruce.info`），页面上的数字就会空白。
+- `<user>.github.io` 自动跳转到自定义域名，是 GitHub Pages 配了自定义域名的**正常 301 行为**，与统计无关。
+- 换 Vercount 后应能规避这类空白问题（POST + 缓存兜底）。
+
+### 踩过的坑（本次）
+
+| 坑 | 说明 | 解法 |
+| --- | --- | --- |
+| 改主题 `.ejs` 前先确认编码 | PowerShell 5.1 控制台显示中文乱码，容易误判文件是 GBK | 主题文件实际是 **UTF-8**（用 Read 工具 / Python 解码确认），编辑工具按 UTF-8 处理即可 |
+| Vercount 非官方 CDN 不可用 | 网上流传的 `cn.vercount.icu` 实测 `HTTP 000`（连不上） | 用官方文档给的 `https://events.vercount.one/js`（实测 200 / 约 1.4s） |
+
+### 敏感信息检查（推送前已做）
+
+- 本次改动只涉及主题模板 / JSON 配置 / README，未引入任何 Key、端点、邮箱、设备序列号
+- `git status` 复核，`素材/`、`site/` 均被 gitignore，不会入库
+
+### 部署
+
+- `npx hexo clean; npx hexo g` 后把产物同步到仓库根目录，提交推送 master（本次一并 push）
+

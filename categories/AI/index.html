@@ -36,6 +36,26 @@
 
 
 <body>
+    <script>
+        /* 首屏防闪：优先用用户手动偏好，否则按设备本地时间自动判断(19:00~次日7:00深色) */
+        (function () {
+            try {
+                var pref = localStorage.getItem('isDark');
+                var dark;
+                if (pref === '1') {
+                    dark = true;
+                } else if (pref === '0') {
+                    dark = false;
+                } else {
+                    var h = new Date().getHours();
+                    dark = h >= 19 || h < 7;
+                }
+                if (dark) {
+                    document.body.classList.add('DarkMode');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
@@ -585,7 +605,8 @@ $(function () {
     <script src="/libs/others/clicklove.js" async="async"></script>
     
     
-    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    <!-- 访问统计：Vercount（https://vercount.one），兼容不蒜子标签并自动同步旧数据 -->
+    <script defer src="https://events.vercount.one/js"></script>
     
 
     

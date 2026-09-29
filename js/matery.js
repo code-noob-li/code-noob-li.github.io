@@ -190,7 +190,16 @@ function applyTheme(dark) {
     }
 }
 
-applyTheme(localStorage.getItem('isDark') === '1');
+// 无手动偏好时，按访问设备本地时间自动判断：19:00~次日7:00 用深色
+function getPreferredDark() {
+    var saved = localStorage.getItem('isDark');
+    if (saved === '1') return true;
+    if (saved === '0') return false;
+    var h = new Date().getHours();
+    return h >= 19 || h < 7;
+}
+
+applyTheme(getPreferredDark());
 
 $(document).on('click', '#theme-toggle', function (e) {
     e.preventDefault();
