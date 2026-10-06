@@ -386,4 +386,32 @@ body.DarkMode .home-intro p {
     color: #cfcfcf;
 }
 
+/* 深色模式：修复汉堡菜单（侧边栏）选项看不见的问题。
+   原因：dark.css 给 header .side-nav 加了 filter: invert(0.8)，
+   而菜单文字又被单独强制成白色，白色被反相成深色 → 深字深底看不见。
+   这里取消侧边栏的反相，改用显式深色背景 + 浅色文字。 */
+body.DarkMode header .side-nav,
+body.DarkMode header .side-nav .menu-list .m-nav-show {
+    filter: none !important;
+}
+
+body.DarkMode header .side-nav {
+    background-color: #2f3742 !important;
+}
+
+body.DarkMode header .side-nav .menu-list a,
+body.DarkMode header .side-nav .mobile-menu-list a i {
+    color: #e8e8e8 !important;
+}
+
+body.DarkMode header .side-nav .menu-list a:hover,
+body.DarkMode header .side-nav .m-nav-item.m-nav-show > a {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+}
+
+body.DarkMode header .side-nav .menu-list .divider {
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
 

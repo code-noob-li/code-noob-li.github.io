@@ -216,10 +216,21 @@ git push origin master
   - 8 个坑：①卡在 `assembleRelease` 直连 Maven Central ②偷下 NDK ③Gradle 锁冲突 ④Kotlin 增量缓存损坏 ⑤并行构建 AGP 竞态 ⑥全局 `init.gradle` 触发 `FAIL_ON_PROJECT_REPOS` ⑦Gradle 堆过大反向卡死 ⑧杂项（无 `gradlew`、发行包镜像、compileSdk、AS 集成、插件、keystore）。
 - 编译产物已同步到仓库根目录并推送 master。
 
+### 追加修复（同日）：深色模式汉堡菜单选项看不见
+
+- **现象**：深色模式下，左上角汉堡按钮展开的侧边栏菜单项（首页 / 标签 / 分类…）几乎不可见。
+- **根因**：`themes/matery/source/css/dark.css:125` 给 `header .side-nav` 整块加了 `filter: invert(0.8)`，而菜单文字又被 `dark.css:90-96` 单独强制成白色 `rgba(255,255,255,.6)`。白色经反相变成深色，深色文字叠在（反相后的）深色底上 → 看不见。
+- **解法**：在 `themes/matery/source/css/my.css`（加载顺序最后）覆盖：
+  - 取消 `header .side-nav` 及 `.menu-list .m-nav-show` 的 `filter`
+  - 给侧边栏显式深色底 `#2f3742`，菜单文字/图标改浅色 `#e8e8e8`
+  - 补充 hover / 展开态的浅色高亮与分隔线颜色
+- 已重新编译并同步产物。
+
 ### 踩过的坑（本次）
 
 | 坑 | 说明 | 解法 |
 | --- | --- | --- |
+| **深色模式侧边栏菜单反相打架** | `dark.css` 用 `filter: invert(0.8)` 做深色，同时又给菜单文字设了白色；反相后白→深，叠深底不可见 | 在 `my.css` 取消侧边栏的 filter，改用显式深底 + 浅字 |
 | **hexo 对中文加粗的渲染 bug** | 闭合 `**` 紧跟中文字（如 `**X**把它`）时，inline bold 不渲染，原样输出 `**`；更坑的是**同一行存在多个内联 code span 时，即使两侧留了空格也会失效**（如 `需要 **Flutter 插件** 把它…` 一行里另有 5+ 个反引号代码块） | 用脚本逐行 `marked.parse` 检查残留 `**` 定位；改用 `<strong>` 标签，或把加粗短语收尾到标点/加分隔空格 |
 | **GBK 控制台看不清问题** | PowerShell 5.1 下 Select-String 输出中文乱码，无法肉眼核对渲染结果 | 写 Node/Python 脚本按 UTF-8 处理 + `sys.stdout.reconfigure(encoding='utf-8')`，用「是否残留 `**`」等结构化判断代替肉眼看 |
 | **产物同步别用 `robocopy /MIR`** | `/MIR` 会把根目录里不属于 public 的东西（`.git`、`.github`、`README.md`、`site/`、`素材/`）当多余项删掉 | 先枚举产物清单（`2022 2026 about archives categories css js libs medias tags 404.html favicon.png index.html search.xml`）逐个删除，再 `Copy-Item public\* → 根目录` |
