@@ -206,3 +206,30 @@ git push origin master
 
 - `npx hexo clean; npx hexo g` 后把产物同步到仓库根目录，提交推送 master（本次一并 push）
 
+## 2026-10-07 本次维护会话记录
+
+### 本次改造
+
+- **新增文章** `flutter-android-build-pitfalls.md`：《Flutter 安卓打包踩坑实录：Gradle 卡死、NDK 偷跑与增量缓存崩溃》
+  - 素材来源 `素材/文章/项目记录.md` 的「坑点记录」部分，**只保留踩坑内容**，已剔除具体项目信息（项目名 / applicationId / 改造功能等），全部 generic 化。
+  - 分类「折腾记录」，标签 Flutter / Android / Gradle / 打包 / 折腾记录。
+  - 8 个坑：①卡在 `assembleRelease` 直连 Maven Central ②偷下 NDK ③Gradle 锁冲突 ④Kotlin 增量缓存损坏 ⑤并行构建 AGP 竞态 ⑥全局 `init.gradle` 触发 `FAIL_ON_PROJECT_REPOS` ⑦Gradle 堆过大反向卡死 ⑧杂项（无 `gradlew`、发行包镜像、compileSdk、AS 集成、插件、keystore）。
+- 编译产物已同步到仓库根目录并推送 master。
+
+### 踩过的坑（本次）
+
+| 坑 | 说明 | 解法 |
+| --- | --- | --- |
+| **hexo 对中文加粗的渲染 bug** | 闭合 `**` 紧跟中文字（如 `**X**把它`）时，inline bold 不渲染，原样输出 `**`；更坑的是**同一行存在多个内联 code span 时，即使两侧留了空格也会失效**（如 `需要 **Flutter 插件** 把它…` 一行里另有 5+ 个反引号代码块） | 用脚本逐行 `marked.parse` 检查残留 `**` 定位；改用 `<strong>` 标签，或把加粗短语收尾到标点/加分隔空格 |
+| **GBK 控制台看不清问题** | PowerShell 5.1 下 Select-String 输出中文乱码，无法肉眼核对渲染结果 | 写 Node/Python 脚本按 UTF-8 处理 + `sys.stdout.reconfigure(encoding='utf-8')`，用「是否残留 `**`」等结构化判断代替肉眼看 |
+| **产物同步别用 `robocopy /MIR`** | `/MIR` 会把根目录里不属于 public 的东西（`.git`、`.github`、`README.md`、`site/`、`素材/`）当多余项删掉 | 先枚举产物清单（`2022 2026 about archives categories css js libs medias tags 404.html favicon.png index.html search.xml`）逐个删除，再 `Copy-Item public\* → 根目录` |
+
+### 敏感信息检查（推送前已做）
+
+- 全仓库（排除 `libs/`、`site/`）扫描：无 `sk-` 真实 Key、无 `llm-<ID>` 端点、无隐私邮箱（命中的仅第三方库注释与已 gitignore 的 `素材/`）
+- `素材/`、`site/` 均 gitignore，不入库
+
+### 部署
+
+- `npx hexo clean; npx hexo g` 后把产物同步到仓库根目录，提交推送 master（本次一并 push）
+
